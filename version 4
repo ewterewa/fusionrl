@@ -1,0 +1,13 @@
+fillStyle="rgba(120,180,255,0.8)"
+ctx.beginPath();ctx.ellipse(350+R,210+Z,40,25,0,0,6.28);ctx.fill()
+
+document.getElementById("mode").innerText=mode
+document.getElementById("player").innerText=player
+
+t+= mode==="RL"?0.02:0.035
+requestAnimationFrame(draw)
+}
+draw()
+</script>
+</body>
+</html>
