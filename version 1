@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>FusionRL Lab — Interactive Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;font-family:Inter,Arial;
+  background:#020617;color:#e5e7eb
+}
+header{padding:20px;border-bottom:1px solid #1e293b}
+nav button{
+  margin:4px;padding:8px 14px;border-radius:12px;
+  border:1px solid #1e293b;background:#020617;color:white;cursor:pointer
+}
+nav button.active{background:#4f46e5}
+main{max-width:1100px;margin:auto;padding:20px}
+section{display:none}
+section.active{display:block}
+canvas{background:black;border-radius:16px;border:1px solid #334155}
+.card{border:1px solid #1e293b;border-radius:14px;padding:14px;margin:10px 0}
+input[type=range]{width:100%}
+button.action{background:#4f46e5;border:none;padding:8px 14px;border-radius:10px;color:white}
+</style>
+</head>
+
+<body>
+<header>
+<h1>FusionRL Lab</h1>
+<p>Интерактивная платформа управления плазмой</p>
+<nav>
+<button class="active" onclick="tab('sim',this)">Simulation</button>
+<button onclick="tab('alg',this)">Algorithms</button>
+<button onclick="tab('xai',this)">Explainable AI</button>
+<button onclick="tab('human',this)">Human vs AI</button>
+<button onclick="tab('research',this)">Research</button>
+<button onclick="tab('platform',this)">Platform</button>
+</nav>
+</header>
+
+<main>
+
+<section id="sim" class="active">
+<h2>Simulation</h2>
+<canvas id="c" width="700" height="420"></canvas>
+
+<div class="card">
+Магнитное поле B
+<input type="range" min="0.5" max="2" step="0.1" value="1" id="B">
+</div>
+<div class="card">
+Давление плазмы
+<input type="range" min="0.2" max="1.5" step="0.1" value="1" id="P">
+</div>
+<div class="card">
+Возмущения
+<input type="range" min="0" max="1" step="0.05" value="0.2" id="N">
+</div>
+</section>
+
+<section id="alg">
+<h2>Algorithms</h2>
+<div class="card">
+<button class="action" onclick="mode='PID'">PID</button>
+<button class="action" onclick="mode='RL'">RL (PPO)</button>
+<p>Текущий алгоритм: <b id="mode">PID</b></p>
+</div>
+</section>
+
+<section id="xai">
+<h2>Explainable AI</h2>
+<div class="card">
+<label><input type="checkbox" checked onchange="xai()"> β</label><br>
+<label><input type="checkbox" checked onchange="xai()"> q-profile</label><br>
+<label><input type="checkbox" checked onchange="xai()"> Instability</label>
+<p id="xaiText"></p>
+</div>
+</section>
+
+<section id="human">
+<h2>Human vs AI</h2>
+<div class="card">
+<button class="action" onclick="player='human'">Я управляю</button>
+<button class="action" onclick="player='ai'">AI управляет</button>
+<p>Режим: <b id="player">AI</b></p>
+<p>Время устойчивости: <span id="score">0</span> c</p>
+</div>
+</section>
+
+<section id="research">
+<h2>Research</h2>
+<div class="card"><details><summary>MDP</summary>Состояние, действие, награда</details></div>
+<div class="card"><details><summary>Reward</summary>Максимизация устойчивости</details></div>
+<div class="card"><details><summary>State</summary>R, Z, β, instabilities</details></div>
+</section>
+
+<section id="platform">
+<h2>Platform</h2>
+<div class="card">
+<button class="action">GitHub Pages Demo</button>
+<button class="action">React Version</button>
+<button class="action">FastAPI Backend Ready</button>
+</div>
+</section>
+
+</main>
+
+<script>
+function tab(id,b){
+document.querySelectorAll("section").forEach(s=>s.classList.remove("active"))
+document.getElementById(id).classList.add("active")
+document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"))
+b.classList.add("active")
+}
+
+let ctx=c.getContext("2d"),t=0,mode="PID",player="ai",score=0
+
+function xai(){
+xaiText.innerText="Вклад параметров пересчитан"
+}
+
+setInterval(()=>{score+=0.1;document.getElementById("score").innerText=score.toFixed(1)},100)
+
+function draw(){
+ctx.clearRect(0,0,700,420)
+ctx.strokeStyle="#64748b";ctx.lineWidth=4
+ctx.beginPath();ctx.arc(350,210,150,0,6.28);ctx.stroke()
+
+let B=+document.getElementById("B").value
+let P=+document.getElementById("P").value
+let N=+document.getElementById("N").value
+
+let R=Math.sin(t)*40*P/B
+let Z=Math.cos(t*0.7)*25+Math.random()*N*10
+
+ctx.
+fillStyle="rgba(120,180,255,0.8)"
+ctx.beginPath();ctx.ellipse(350+R,210+Z,40,25,0,0,6.28);ctx.fill()
+
+document.getElementById("mode").innerText=mode
+document.getElementById("player").innerText=player
+
+t+= mode==="RL"?0.02:0.035
+requestAnimationFrame(draw)
+}
+draw()
+</script>
+</body>
+</html>
+
