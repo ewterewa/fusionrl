@@ -2,148 +2,276 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>FusionRL Lab — Interactive Demo</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FusionRL — Interactive Tokamak Control</title>
+
 <style>
-body{
-  margin:0;font-family:Inter,Arial;
-  background:#020617;color:#e5e7eb
+body {
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#020617;
+  color:#e5e7eb;
 }
-header{padding:20px;border-bottom:1px solid #1e293b}
-nav button{
-  margin:4px;padding:8px 14px;border-radius:12px;
-  border:1px solid #1e293b;background:#020617;color:white;cursor:pointer
+
+nav {
+  display:flex;
+  gap:10px;
+  padding:10px;
+  background:#020617;
+  border-bottom:1px solid #1e293b;
 }
-nav button.active{background:#4f46e5}
-main{max-width:1100px;margin:auto;padding:20px}
-section{display:none}
-section.active{display:block}
-canvas{background:black;border-radius:16px;border:1px solid #334155}
-.card{border:1px solid #1e293b;border-radius:14px;padding:14px;margin:10px 0}
-input[type=range]{width:100%}
-button.action{background:#4f46e5;border:none;padding:8px 14px;border-radius:10px;color:white}
+
+nav button {
+  background:#020617;
+  color:#e5e7eb;
+  border:1px solid #1e293b;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+nav button.active {
+  background:#1e293b;
+}
+
+section {
+  display:none;
+  padding:20px;
+}
+
+section.active {
+  display:block;
+}
+
+canvas {
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:12px;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+  margin-top:10px;
+}
+
+.card {
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:12px;
+  padding:14px;
+}
+
+input[type=range] {
+  width:100%;
+}
+
+.bar {
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:8px;
+  height:14px;
+  overflow:hidden;
+}
+
+.bar div {
+  height:100%;
+  background:#6366f1;
+  width:0%;
+  transition:width 0.3s;
+}
+
+.stat {
+  font-size:28px;
+  font-weight:bold;
+}
+
+.action {
+  padding:8px 14px;
+  border-radius:8px;
+  border:1px solid #1e293b;
+  background:#020617;
+  color:#e5e7eb;
+  cursor:pointer;
+}
 </style>
 </head>
 
 <body>
-<header>
-<h1>FusionRL Lab</h1>
-<p>Интерактивная платформа управления плазмой</p>
-<nav>
-<button class="active" onclick="tab('sim',this)">Simulation</button>
-<button onclick="tab('alg',this)">Algorithms</button>
-<button onclick="tab('xai',this)">Explainable AI</button>
-<button onclick="tab('human',this)">Human vs AI</button>
-<button onclick="tab('research',this)">Research</button>
-<button onclick="tab('platform',this)">Platform</button>
-</nav>
-</header>
 
-<main>
+<nav>
+  <button class="active" onclick="showTab('sim')">1 Simulation</button>
+  <button onclick="showTab('alg')">2 Algorithms</button>
+  <button onclick="showTab('xai')">3 Explainable AI</button>
+  <button onclick="showTab('human')">4 Human vs AI</button>
+  <button onclick="showTab('research')">5 Research</button>
+</nav>
 
 <section id="sim" class="active">
-<h2>Simulation</h2>
-<canvas id="c" width="700" height="420"></canvas>
+<h2>1. Plasma Simulation</h2>
+<canvas id="cv" width="500" height="500"></canvas>
 
-<div class="card">
-Магнитное поле B
-<input type="range" min="0.5" max="2" step="0.1" value="1" id="B">
-</div>
-<div class="card">
-Давление плазмы
-<input type="range" min="0.2" max="1.5" step="0.1" value="1" id="P">
-</div>
-<div class="card">
-Возмущения
-<input type="range" min="0" max="1" step="0.05" value="0.2" id="N">
+<div class="grid">
+  <div class="card">Magnetic Field B
+    <input type="range" min="0.5" max="2" step="0.01" value="1" oninput="B=this.value">
+  </div>
+  <div class="card">Pressure P
+    <input type="range" min="0.5" max="2" step="0.01" value="1" oninput="P=this.value">
+  </div>
+  <div class="card">Noise
+    <input type="range" min="0" max="1" step="0.01" value="0.2" oninput="N=this.value">
+  </div>
 </div>
 </section>
 
 <section id="alg">
-<h2>Algorithms</h2>
+<h2>2. Algorithms</h2>
 <div class="card">
-<button class="action" onclick="mode='PID'">PID</button>
-<button class="action" onclick="mode='RL'">RL (PPO)</button>
-<p>Текущий алгоритм: <b id="mode">PID</b></p>
+  <button class="action" onclick="algorithm='PID'">PID</button>
+  <button class="action" onclick="algorithm='RL'">RL</button>
+  <p>Current algorithm: <b id="algName">PID</b></p>
 </div>
 </section>
 
 <section id="xai">
-<h2>Explainable AI</h2>
-<div class="card">
-<label><input type="checkbox" checked onchange="xai()"> β</label><br>
-<label><input type="checkbox" checked onchange="xai()"> q-profile</label><br>
-<label><input type="checkbox" checked onchange="xai()"> Instability</label>
-<p id="xaiText"></p>
+<h2>3. Explainable AI</h2>
+<div class="grid">
+  <div class="card">β contribution
+    <div class="bar"><div id="b1"></div></div>
+    <span id="v1"></span>
+  </div>
+  <div class="card">Noise contribution
+    <div class="bar"><div id="b2"></div></div>
+    <span id="v2"></span>
+  </div>
+  <div class="card">Control contribution
+    <div class="bar"><div id="b3"></div></div>
+    <span id="v3"></span>
+  </div>
 </div>
 </section>
 
 <section id="human">
-<h2>Human vs AI</h2>
-<div class="card">
-<button class="action" onclick="player='human'">Я управляю</button>
-<button class="action" onclick="player='ai'">AI управляет</button>
-<p>Режим: <b id="player">AI</b></p>
-<p>Время устойчивости: <span id="score">0</span> c</p>
+<h2>4. Human vs AI</h2>
+<button class="action" onclick="mode='human'">Human</button>
+<button class="action" onclick="mode='ai'">AI</button>
+<p>Mode: <b id="modeTxt">AI</b></p>
+
+<div class="grid">
+  <div class="card"><div class="stat" id="cur">0</div>Current</div>
+  <div class="card"><div class="stat" id="bh">0</div>Best Human</div>
+  <div class="card"><div class="stat" id="ba">0</div>Best AI</div>
 </div>
 </section>
 
 <section id="research">
-<h2>Research</h2>
-<div class="card"><details><summary>MDP</summary>Состояние, действие, награда</details></div>
-<div class="card"><details><summary>Reward</summary>Максимизация устойчивости</details></div>
-<div class="card"><details><summary>State</summary>R, Z, β, instabilities</details></div>
-</section>
-
-<section id="platform">
-<h2>Platform</h2>
-<div class="card">
-<button class="action">GitHub Pages Demo</button>
-<button class="action">React Version</button>
-<button class="action">FastAPI Backend Ready</button>
+<h2>5. Research</h2>
+<div class="grid">
+  <div class="card">
+    <b>MDP</b><br>
+    State: R, Z, β<br>
+    Action: Control<br>
+    Reward: Stability<br>
+    Algorithm: <span id="rAlg"></span>
+  </div>
+  <div class="card">
+    <b>Regime</b><br>
+    <span id="reg"></span>
+  </div>
+  <div class="card">
+    β = <span id="rb"></span><br>
+    Instability = <span id="ri"></span>
+  </div>
 </div>
+<div class="card" id="conc"></div>
 </section>
-
-</main>
 
 <script>
-function tab(id,b){
-document.querySelectorAll("section").forEach(s=>s.classList.remove("active"))
-document.getElementById(id).classList.add("active")
-document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"))
-b.classList.add("active")
+const sections=document.querySelectorAll("section");
+
+function showTab(id){
+  sections.forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
 }
 
-let ctx=c.getContext("2d"),t=0,mode="PID",player="ai",score=0
+let cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+let R=250,Z=250,B=1,P=1,N=0.2;
+let beta=1,instability=0,control=0;
+let algorithm="PID",mode="ai";
+let cur=0,bh=0,ba=0;
+let keys={};
 
-function xai(){
-xaiText.innerText="Вклад параметров пересчитан"
+document.addEventListener("keydown",e=>keys[e.key]=true);
+document.addEventListener("keyup",e=>keys[e.key]=false);
+
+function loop(){
+  ctx.clearRect(0,0,500,500);
+
+  beta=P/B;
+  instability=Math.abs(beta-1)+N;
+  control=algorithm==="PID"?-0.1*(beta-1):-0.15*(beta-1);
+
+  if(mode==="human"){
+    if(keys["ArrowLeft"])R-=2;
+    if(keys["ArrowRight"])R+=2;
+    if(keys["ArrowUp"])Z-=2;
+    if(keys["ArrowDown"])Z+=2;
+  } else {
+    R+=control*20;
+    Z+=control*10;
+  }
+
+  ctx.strokeStyle="#6366f1";
+  ctx.beginPath();
+  ctx.arc(250,250,200,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.fillStyle=instability>0.7?"#ef4444":"#22c55e";
+  ctx.beginPath();
+  ctx.arc(R,Z,15,0,Math.PI*2);
+  ctx.fill();
+
+  if(instability<0.6){cur+=0.02}else{
+    if(mode==="human")bh=Math.max(bh,cur);
+    else ba=Math.max(ba,cur);
+    cur=0;
+  }
+
+  algName.innerText=algorithm;
+  modeTxt.innerText=mode;
+  curEl=cur.toFixed(1);
+  cur.innerText=curEl;
+  bh.innerText=bh.toFixed(1);
+  ba.innerText=ba.toFixed(1);
+
+  let c1=Math.abs(beta-1),c2=N,c3=Math.abs(control);
+  let s=c1+c2+c3+1e-6;
+  let p1=100*c1/s,p2=100*c2/s,p3=100*c3/s;
+  b1.style.width=p1+"%";v1.innerText=p1.toFixed(0)+"%";
+  b2.style.width=p2+"%";v2.innerText=p2.toFixed(0)+"%";
+  b3.style.width=p3+"%";v3.innerText=p3.toFixed(0)+"%";
+
+  rAlg.innerText=algorithm;
+  rb.innerText=beta.toFixed(2);
+  ri.innerText=instability.toFixed(2);
+
+  if(instability<0.4){
+    reg.innerText="Stable";
+    conc.innerText="System operates in a stable confinement regime.";
+  } else if(instability<0.7){
+    reg.innerText="Marginal";
+    conc.innerText="System is near instability threshold.";
+  } else {
+    reg.innerText="Unstable";
+    conc.innerText="Loss of plasma confinement detected.";
+  }
+
+  requestAnimationFrame(loop);
 }
-
-setInterval(()=>{score+=0.1;document.getElementById("score").innerText=score.toFixed(1)},100)
-
-function draw(){
-ctx.clearRect(0,0,700,420)
-ctx.strokeStyle="#64748b";ctx.lineWidth=4
-ctx.beginPath();ctx.arc(350,210,150,0,6.28);ctx.stroke()
-
-let B=+document.getElementById("B").value
-let P=+document.getElementById("P").value
-let N=+document.getElementById("N").value
-
-let R=Math.sin(t)*40*P/B
-let Z=Math.cos(t*0.7)*25+Math.random()*N*10
-
-ctx.fillStyle="rgba(120,180,255,0.8)"
-ctx.beginPath();ctx.ellipse(350+R,210+Z,40,25,0,0,6.28);ctx.fill()
-
-document.getElementById("mode").innerText=mode
-document.getElementById("player").innerText=player
-
-t+= mode==="RL"?0.02:0.035
-requestAnimationFrame(draw)
-}
-draw()
+loop();
 </script>
+
 </body>
 </html>
