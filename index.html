@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>FusionRL — Stable Interactive Demo</title>
+
+<style>
+body { margin:0; font-family:Arial; background:#020617; color:#e5e7eb; }
+nav { display:flex; gap:8px; padding:10px; border-bottom:1px solid #1e293b; }
+nav button { background:#020617; color:#e5e7eb; border:1px solid #1e293b; padding:6px 10px; border-radius:6px; cursor:pointer; }
+nav button.active { background:#1e293b; }
+section { display:none; padding:16px; }
+section.active { display:block; }
+canvas { border:1px solid #1e293b; border-radius:10px; }
+.card { border:1px solid #1e293b; border-radius:10px; padding:10px; margin-top:10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+.bar { height:12px; border:1px solid #1e293b; border-radius:6px; overflow:hidden; }
+.bar div { height:100%; background:#6366f1; width:0%; }
+.stat { font-size:22px; font-weight:bold; }
+</style>
+</head>
+
+<body>
+
+<nav>
+  <button class="active" data-tab="sim">Simulation</button>
+  <button data-tab="alg">Algorithms</button>
+  <button data-tab="xai">Explainable AI</button>
+  <button data-tab="human">Human vs AI</button>
+  <button data-tab="research">Research</button>
+</nav>
+
+<section id="sim" class="active">
+<h2>1. Simulation</h2>
+<canvas id="cv" width="420" height="420"></canvas>
+<div class="grid">
+  <div class="card">B<input type="range" min="0.5" max="2" step="0.01" value="1" id="B"></div>
+  <div class="card">P<input type="range" min="0.5" max="2" step="0.01" value="1" id="P"></div>
+  <div class="card">Noise<input type="range" min="0" max="1" step="0.01" value="0.2" id="N"></div>
+</div>
+</section>
+
+<section id="alg">
+<h2>2. Algorithms</h2>
+<div class="card">
+  <button onclick="state.alg='PID'">PID</button>
+  <button onclick="state.alg='RL'">RL</button>
+  <p>Current: <b id="algLbl">PID</b></p>
+</div>
+</section>
+
+<section id="xai">
+<h2>3. Explainable AI</h2>
+<div class="grid">
+  <div class="card">β<div class="bar"><div id="b1"></div></div><span id="v1"></span></div>
+  <div class="card">Noise<div class="bar"><div id="b2"></div></div><span id="v2"></span></div>
+  <div class="card">Control<div class="bar"><div id="b3"></div></div><span id="v3"></span></div>
+</div>
+</section>
+
+<section id="human">
+<h2>4. Human vs AI</h2>
+<div class="card">
