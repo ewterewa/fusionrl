@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Live Tokamak Simulation</title>
+<style>
+  body {
+    font-family: Inter, Arial, sans-serif;
+    background: #0b1020;
+    color: #eaeaf0;
+    margin: 0;
+    padding: 20px;
+  }
+
+  section {
+    max-width: 960px;
+    margin: auto;
+  }
+
+  h2 {
+    margin-bottom: 6px;
+  }
+
+  canvas {
+    background: radial-gradient(circle at center, #0a1435, #050814);
+    border-radius: 12px;
+    display: block;
+    margin: 20px 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  input[type=range] {
+    width: 100%;
+  }
+
+  .stat {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ff7070;
+    text-align: center;
+  }
+</style>
+</head>
+
+<body>
+
+<section id="sim" class="active">
+  <h2>1. Live Tokamak Simulation</h2>
+  <p>
+    Интерактивная модель плазмы в токамаке.
+    Изменяйте параметры и наблюдайте, как меняется устойчивость.
+  </p>
+
+  <canvas id="canvas" width="720" height="440"></canvas>
+
+  <div class="grid">
+    <div class="card">
+      Магнитное поле B
+      <input type="range" id="B" min="0.6" max="2.0" step="0.1" value="1.2">
+      <div>Текущее значение: <b id="Bv">1.2</b></div>
+    </div>
+
+    <div class="card">
+      Давление плазмы P
+      <input type="range" id="P" min="0.3" max="1.6" step="0.1" value="0.9">
+      <div>Текущее значение: <b id="Pv">0.9</b></div>
+    </div>
+
+    <div class="card">
+      Возмущения N
+      <input type="range" id="N" min="0" max="1" step="0.05" value="0.2">
+      <div>Текущее значение: <b id="Nv">0.2</b></div>
+    </div>
+
+    <div class="card">
+      <div class="stat" id="inst">0.00</div>
+      Индекс нестабильности
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <b>Как интерпретировать модель:</b><br><br>
+    • Увеличение <b>P</b> повышает β и может привести к MHD-неустойчивости<br>
+    • Увеличение <b>B</b> стабилизирует плазму<br>
+    • <b>N</b> моделирует внешние возмущения и шум<br>
+    • Индекс нестабильности &gt; 0.5 означает потерю устойчивости
+  </div>
+</section>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const B = document.getElementById("B");
+const P = document.getElementById("P");
+const N = document.getElementById("N");
+
+const Bv = document.getElementById("Bv");
+const Pv = document.getElementById("Pv");
+const Nv = document.getElementById("Nv");
+const instEl = document.getElementById("inst");
+
+const cx = canvas.width / 2;
+const cy = canvas.height / 2;
+
+let t = 0;
+
+function instabilityIndex(B, P, N) {
+  // упрощённая β-модель
+  let beta = P / (B * B);
+  let noise = N * 0.4;
+  return Math.min(1, Math.max(0, beta + noise));
+}
+
+function drawTokamak() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // камера
+  ctx.strokeStyle = "#3c6aff";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 260, 140, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // плазма
+  const inst = instabilityIndex(+B.value, +P.value, +N.value);
+  const wobble = inst * 18;
+
+  for (let i = 0; i < 120; i++) {
+    const a = i / 120 * Math.PI * 2;
+    const r1 = 220 + Math.sin(a * 4 + t) * wobble;
+    const r2 = 110 + Math.cos(a * 3 - t) * wobble;
+
+    const x = cx + Math.cos(a) * r1;
+    const y = cy + Math.sin(a) * r2;
+
+    ctx.fillStyle = `rgba(255, ${120 + inst * 120}, 80, 0.85)`;
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // индикатор нестабильности
+  instEl.textContent = inst.toFixed(2);
+  instEl.style.color = inst > 0.5 ? "#ff4444" : "#7CFF6B";
+}
+
+function loop() {
+  t += 0.02;
+  drawTokamak();
+  requestAnimationFrame(loop);
+}
+
+// UI
+[B, P, N].forEach(sl => {
+  sl.addEventListener("input", () => {
+    Bv.textContent = B.value;
+    Pv.textContent = P.value;
+    Nv.textContent = N.value;
+  });
+});
+
+loop();
+</script>
+
+</body>
+</html>
